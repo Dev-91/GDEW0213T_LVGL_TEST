@@ -12,6 +12,9 @@ static const char *TAG = "epaper";
 // SPI 핸들러
 static spi_device_handle_t spi;
 
+// 전역 프레임 버퍼 선언
+static uint8_t frame_buffer[EPD_ARRAY];
+
 int16_t _current_page = -1;
 int rotation = 0;
 
@@ -20,24 +23,7 @@ static void epaper_reset(void);
 static void epaper_wait_busy(void);
 static void epaper_send_command(uint8_t cmd);
 static void epaper_send_data(uint8_t data);
-
-void swap(int16_t a, int16_t b)
-{
-    int16_t t = a;
-    a = b;
-    b = t;
-}
-
-// 전역 프레임 버퍼 선언
-static uint8_t frame_buffer[EPD_ARRAY];
-
-int get_rotation() {
-    return rotation;
-}
-
-void set_rotation(int rot) {
-    rotation = rot;
-}
+static void swap(int16_t a, int16_t b);
 
 esp_err_t epaper_spi_init(void)
 {
@@ -118,6 +104,43 @@ esp_err_t epaper_display_init(void)
     return ESP_OK;
 }
 
+esp_err_t epaper_update(void)
+{
+    unsigned int i;
+    //Write Data
+    epaper_send_command(EPD_DATA_START_TRANSMISSION_1);        //Transfer old data
+    for(i = 0; i < EPD_ARRAY; i++)
+    { 
+      epaper_send_data(0xFF);
+    }
+
+    epaper_send_command(EPD_DATA_START_TRANSMISSION_2);        //Transfer new data
+    for(i = 0; i < EPD_ARRAY; i++)
+    {
+        epaper_send_data(frame_buffer[i]);
+    }
+
+    epaper_send_command(EPD_DISPLAY_REFRESH);
+    vTaskDelay(pdMS_TO_TICKS(1));
+    epaper_wait_busy();
+
+    return ESP_OK;
+}
+
+esp_err_t epaper_deep_sleep()
+{
+    epaper_send_command(EPD_VCOM_AND_DATA_INTERVAL_SETTING);  // VCOM AND DATA INTERVAL SETTING     
+    epaper_send_data(0xF7); // WBmode:VBDF 17|D7 VBDW 97 VBDB 57    WBRmode:VBDF F7 VBDW 77 VBDB 37  VBDR B7  
+
+    epaper_send_command(EPD_POWER_OFF);     // power off
+    vTaskDelay(pdMS_TO_TICKS(100));         // 100ms
+    epaper_send_command(EPD_DEEP_SLEEP);    // deep sleep
+    epaper_send_data(0xA5);
+
+    return ESP_OK;
+}
+
+
 esp_err_t epaper_fill_screen(uint8_t color_hex)
 {
     unsigned int i;
@@ -188,42 +211,15 @@ void epaper_draw_pixel(int16_t x, int16_t y, uint16_t color)
     frame_buffer[i] = (frame_buffer[i] & (0xFF ^ (1 << (7 - x % 8))));
 }
 
-esp_err_t epaper_update(void)
-{
-    unsigned int i;
-    //Write Data
-    epaper_send_command(EPD_DATA_START_TRANSMISSION_1);        //Transfer old data
-    for(i = 0; i < EPD_ARRAY; i++)
-    { 
-      epaper_send_data(0xFF);
-    }
-
-    epaper_send_command(EPD_DATA_START_TRANSMISSION_2);        //Transfer new data
-    for(i = 0; i < EPD_ARRAY; i++)
-    {
-        epaper_send_data(frame_buffer[i]);
-    }
-
-    epaper_send_command(EPD_DISPLAY_REFRESH);
-    vTaskDelay(pdMS_TO_TICKS(1));
-    epaper_wait_busy();
-
-    return ESP_OK;
+int get_rotation() {
+    return rotation;
 }
 
-esp_err_t epaper_deep_sleep()
-{
-    epaper_send_command(EPD_VCOM_AND_DATA_INTERVAL_SETTING);  // VCOM AND DATA INTERVAL SETTING     
-    epaper_send_data(0xF7); // WBmode:VBDF 17|D7 VBDW 97 VBDB 57    WBRmode:VBDF F7 VBDW 77 VBDB 37  VBDR B7  
-
-    epaper_send_command(EPD_POWER_OFF);     // power off
-    vTaskDelay(pdMS_TO_TICKS(100));         // 100ms
-    epaper_send_command(EPD_DEEP_SLEEP);    // deep sleep
-    epaper_send_data(0xA5);
-
-    return ESP_OK;
+void set_rotation(int rot) {
+    rotation = rot;
 }
 
+// 내부 함수 선언
 static void epaper_reset(void)
 {
     gpio_set_level(EPD_PIN_RST, 0);
@@ -258,4 +254,11 @@ static void epaper_send_data(uint8_t data)
         .tx_buffer = &data,
     };
     spi_device_polling_transmit(spi, &t);
+}
+
+static void swap(int16_t a, int16_t b)
+{
+    int16_t t = a;
+    a = b;
+    b = t;
 }

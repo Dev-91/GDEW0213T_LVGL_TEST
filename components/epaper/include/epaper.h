@@ -7,6 +7,8 @@
 #define EPD_WIDTH   104
 #define EPD_HEIGHT  212
 
+#define EPD_ARRAY  EPD_WIDTH*EPD_HEIGHT/8  
+
 // GPIO 정의
 #define EPD_PIN_BUSY    4
 #define EPD_PIN_RST     16
@@ -14,8 +16,6 @@
 #define EPD_PIN_CS      5
 #define EPD_PIN_CLK     18
 #define EPD_PIN_MOSI    23
-
-#define EPD_ARRAY  EPD_WIDTH*EPD_HEIGHT/8  
 
 // 명령어 정의
 #define EPD_PANEL_SETTING             0x00
@@ -52,17 +52,11 @@
 // 함수 선언
 esp_err_t epaper_spi_init(void);
 esp_err_t epaper_display_init(void);
-esp_err_t epaper_fill_screen(uint8_t color_hex);
 esp_err_t epaper_update(void);
 esp_err_t epaper_deep_sleep(void);
-void epaper_send_command(uint8_t cmd);
-void epaper_send_data(uint8_t data);
-esp_err_t epaper_draw_buffer(void);
-esp_err_t epaper_gen_pixel_buffer(uint16_t x, uint16_t y, uint8_t color);
-esp_err_t epaper_gen_line_buffer(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint8_t color);
-esp_err_t epaper_clear_frame_buffer(uint8_t color);
-
+esp_err_t epaper_fill_screen(uint8_t color_hex);
 esp_err_t epaper_draw_px(int16_t x, int16_t y, uint16_t color);
-void epaper_draw_pixel(int16_t x, int16_t y, uint16_t color);
+// void epaper_draw_pixel(int16_t x, int16_t y, uint16_t color);
+
 void set_rotation(int rot);
 int get_rotation();
