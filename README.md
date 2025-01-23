@@ -14,11 +14,9 @@
   - CLK: GPIO 18
   - MOSI: GPIO 23
 
-## 소프트웨어 요구사항
-- ESP-IDF 버전: v4.1.0 이상
-- LVGL 버전: v8.4.0
-- 컴포넌트:
-  - lvgl/lvgl: ^8.3.11
+## 소프트웨어 테스트 스펙
+- ESP-IDF 버전: v5.4.0
+- LVGL 버전: v8.3.11
 
 ## 주요 기능
 - LVGL 기반 UI 구현
