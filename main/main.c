@@ -7,9 +7,6 @@
 #include "freertos/task.h"
 
 #include "driver/gpio.h"
-// #include "esp_lcd_panel_io.h"
-// #include "esp_lcd_panel_vendor.h"
-// #include "esp_lcd_panel_ops.h"
 
 #include "epaper.h"
 #include "lvgl.h"
@@ -32,8 +29,10 @@
 
 #define BUTTON_PIN 39   // 버튼 GPIO 핀
 
-static QueueHandle_t gpio_evt_queue = NULL;
+#define LVGL_8
+// #define LVGL_9
 
+static QueueHandle_t gpio_evt_queue = NULL;
 
 static lv_disp_drv_t disp_drv;
 
