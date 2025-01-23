@@ -36,22 +36,6 @@
 └── README.md
 ```
 
-## 빌드 및 실행 방법
-1. ESP-IDF 환경 설정
-```bash
-. $HOME/esp/esp-idf/export.sh
-```
-
-2. 프로젝트 빌드
-```bash
-idf.py build
-```
-
-3. 플래시 및 모니터링
-```bash
-idf.py -p (PORT) flash monitor
-```
-
 ## 주요 기능
 - LVGL 기반 UI 구현
 - E-Paper 디스플레이 드라이버 구현
