@@ -20,22 +20,6 @@
 - 컴포넌트:
   - lvgl/lvgl: ^8.3.11
 
-## 프로젝트 구조
-```bash
-├── CMakeLists.txt
-├── main
-│ ├── CMakeLists.txt
-│ ├── main.c
-│ └── idf_component.yml
-├── components
-│ └── epaper
-│ ├── CMakeLists.txt
-│ ├── epaper.c
-│ └── include
-│ └── epaper.h
-└── README.md
-```
-
 ## 주요 기능
 - LVGL 기반 UI 구현
 - E-Paper 디스플레이 드라이버 구현
