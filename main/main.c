@@ -11,6 +11,8 @@
 #include "epaper.h"
 #include "lvgl.h"
 
+#include "ui/ui.h"
+
 // 디스플레이 해상도 정의
 #define EPD_WIDTH   104
 #define EPD_HEIGHT  212
@@ -235,5 +237,7 @@ void app_main(void)
         ESP_LOGI(TAG, "%d seconds", i+1);
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
-    create_lvgl_ui();
+    // create_lvgl_ui();
+
+    ui_init();
 }
