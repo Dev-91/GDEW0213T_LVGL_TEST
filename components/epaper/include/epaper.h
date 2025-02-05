@@ -55,8 +55,5 @@ esp_err_t epaper_display_init(void);
 esp_err_t epaper_update(void);
 esp_err_t epaper_deep_sleep(void);
 esp_err_t epaper_fill_screen(uint8_t color_hex);
-esp_err_t epaper_draw_px(int16_t x, int16_t y, uint16_t color);
-// void epaper_draw_pixel(int16_t x, int16_t y, uint16_t color);
-
-void set_rotation(int rot);
-int get_rotation();
+esp_err_t epaper_draw_px(uint16_t x, uint16_t y, uint16_t color);
+void epaper_draw_pixel(uint16_t x, uint16_t y, uint16_t color, uint8_t rotation);

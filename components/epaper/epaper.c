@@ -16,14 +16,18 @@ static spi_device_handle_t spi;
 static uint8_t frame_buffer[EPD_ARRAY];
 
 int16_t _current_page = -1;
-int rotation = 0;
 
 // 내부 함수 선언
 static void epaper_reset(void);
 static void epaper_wait_busy(void);
 static void epaper_send_command(uint8_t cmd);
 static void epaper_send_data(uint8_t data);
-static void swap(int16_t a, int16_t b);
+
+#define SWAP(a, b) do { \
+    typeof(a) _tmp = (a); \
+    (a) = (b);        \
+    (b) = _tmp;       \
+} while (0)
 
 esp_err_t epaper_spi_init(void)
 {
@@ -107,7 +111,7 @@ esp_err_t epaper_display_init(void)
 esp_err_t epaper_update(void)
 {
     unsigned int i;
-    //Write Data
+    // Write Data
     epaper_send_command(EPD_DATA_START_TRANSMISSION_1);        //Transfer old data
     for(i = 0; i < EPD_ARRAY; i++)
     { 
@@ -153,7 +157,7 @@ esp_err_t epaper_fill_screen(uint8_t color_hex)
     return ESP_OK;
 }
 
-esp_err_t epaper_draw_px(int16_t x, int16_t y, uint16_t color)
+esp_err_t epaper_draw_px(uint16_t x, uint16_t y, uint16_t color)
 {
     if (x >= EPD_WIDTH || y >= EPD_HEIGHT) {
         return ESP_ERR_INVALID_ARG;
@@ -173,50 +177,37 @@ esp_err_t epaper_draw_px(int16_t x, int16_t y, uint16_t color)
     return ESP_OK;
 }
 
-void epaper_draw_pixel(int16_t x, int16_t y, uint16_t color)
+void epaper_draw_pixel(uint16_t x, uint16_t y, uint16_t color, uint8_t rotation)
 {
-  if ((x < 0) || (x >= EPD_WIDTH) || (y < 0) || (y >= EPD_HEIGHT)) return;
+    // if ((x < 0) || (x >= EPD_WIDTH) || (y < 0) || (y >= EPD_HEIGHT)) return;
 
-  // check rotation, move pixel around if necessary
-  switch (rotation)
-  {
-    case 1:
-      swap(x, y);
-      x = EPD_WIDTH - x - 1;
-      break;
-    case 2:
-      x = EPD_WIDTH - x - 1;
-      y = EPD_HEIGHT - y - 1;
-      break;
-    case 3:
-      swap(x, y);
-      y = EPD_HEIGHT - y - 1;
-      break;
-  }
-  uint16_t i = x / 8 + y * EPD_WIDTH / 8;
-  if (_current_page < 1)
-  {
-    if (i >= sizeof(frame_buffer)) return;
-  }
-  else
-  {
-    y -= _current_page * EPD_HEIGHT;
-    if ((y < 0) || (y >= EPD_HEIGHT)) return;
-    i = x / 8 + y * EPD_WIDTH / 8;
-  }
+    switch (rotation)
+    {
+        case 0:
+            break;
+        case 1:
+            SWAP(x, y);
+            x = EPD_WIDTH - x - 1;
+            break;
+        case 2:
+            x = EPD_WIDTH - x - 1;
+            y = EPD_HEIGHT - y - 1;
+            break;  
+        case 3:
+            SWAP(x, y);
+            y = EPD_HEIGHT - y - 1;
+            break;
+    }
+    
+    // check rotation, move pixel around if necessary
+    uint32_t addr = x / 8 + y * (EPD_WIDTH / 8);
+    uint8_t bit = 7 - (x % 8);
+    
+    if (!color)
+        frame_buffer[addr] = (frame_buffer[addr] | (1 << bit));
+    else
+        frame_buffer[addr] = (frame_buffer[addr] & ~(1 << bit));
 
-  if (!color)
-    frame_buffer[i] = (frame_buffer[i] | (1 << (7 - x % 8)));
-  else
-    frame_buffer[i] = (frame_buffer[i] & (0xFF ^ (1 << (7 - x % 8))));
-}
-
-int get_rotation() {
-    return rotation;
-}
-
-void set_rotation(int rot) {
-    rotation = rot;
 }
 
 // 내부 함수 선언
@@ -254,11 +245,4 @@ static void epaper_send_data(uint8_t data)
         .tx_buffer = &data,
     };
     spi_device_polling_transmit(spi, &t);
-}
-
-static void swap(int16_t a, int16_t b)
-{
-    int16_t t = a;
-    a = b;
-    b = t;
 }
