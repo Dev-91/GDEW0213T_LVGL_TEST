@@ -17,7 +17,7 @@
 #define EPD_WIDTH   104
 #define EPD_HEIGHT  212
 
-#define BUF_SIZE ((EPD_HEIGHT * EPD_WIDTH)/10)
+#define BUF_SIZE ((EPD_HEIGHT * EPD_WIDTH))
 
 #define LV_TICK_PERIOD_MS 10
 
@@ -30,6 +30,12 @@
 #define EPD_PIN_MOSI    23
 
 #define BUTTON_PIN 39   // 버튼 GPIO 핀
+
+#define SWAP(a, b) do { \
+    typeof(a) _tmp = (a); \
+    (a) = (b);        \
+    (b) = _tmp;       \
+} while (0)
 
 // #define LVGL_8
 #define LVGL_9
@@ -128,13 +134,17 @@ static void my_disp_flush(lv_display_t * disp_drv, const lv_area_t * area, void 
 {
     epaper_display_init();
     
+    int rotation = lv_disp_get_rotation(disp);
+
     uint16_t * buf16 = (uint16_t *)px_map; /*Let's say it's a 16 bit (RGB565) display*/
     for(int y = area->y1; y <= area->y2; y++) {
         for(int x = area->x1; x <= area->x2; x++) {
+            
             // black & white
             uint8_t brightness = rgb565_brightness(*buf16);
             uint16_t mono_color = (brightness > 128) ? 0x00 : 0xFF;  // 임계값 128
-            epaper_draw_px(x, y, mono_color);
+            
+            epaper_draw_pixel(x, y, mono_color, rotation);
 
             buf16++;
         }
@@ -210,6 +220,8 @@ void lvgl_setup() {
     // lv_display_set_color_format(disp, LV_COLOR_FORMAT_RGB565);
     
     lv_display_set_buffers(disp, buf, NULL, sizeof(buf), LV_DISPLAY_RENDER_MODE_PARTIAL);
+    
+    lv_disp_set_rotation(disp, LV_DISP_ROTATION_90);
 #endif
 
     /* Create and start a periodic timer interrupt to call lv_tick_inc */
@@ -237,7 +249,14 @@ void app_main(void)
         ESP_LOGI(TAG, "%d seconds", i+1);
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
-    // create_lvgl_ui();
 
-    ui_init();
+    while(1) {
+        for (int i = 0; i < 4; i++) {
+            lv_disp_set_rotation(disp, i);
+            create_lvgl_ui();
+            vTaskDelay(pdMS_TO_TICKS(5000));
+        }
+    }
+
+    // ui_init();
 }
