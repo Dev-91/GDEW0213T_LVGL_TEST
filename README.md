@@ -17,12 +17,13 @@
 ## 소프트웨어 테스트 스펙
 - ESP-IDF 버전: v5.4.0
 - LVGL 버전: v8.3.11
+- LVGL 버전: v9.1.0
 
 ## 주요 기능
 - LVGL 기반 UI 구현
 - E-Paper 디스플레이 드라이버 구현
 - 버튼 인터럽트 처리
-- 저전력 모드 지원 (Deep Sleep)
+- 화면 회전 기능 추가
 
 ## 참고 문서
 - [LVGL 문서](https://docs.lvgl.io/)
